@@ -1,0 +1,106 @@
+!ACESSAR MODO EXEC PRIV
+
+enable
+
+!ACESSAR MODO CONFIGURACAO DO TERMINAL
+
+configure terminal
+
+!MUDAR O HOSTNAME
+
+hostname RT-02
+
+!DEFINIR BANNER
+
+banner motd "ACESSO APENAS PARA O DEPTO. DE TI DA WATER TEMPLE LTDA."
+
+!DEFINIR SENHA EXEC-PRIV
+
+enable secret TempleWater-123#
+
+!DEFINIR USUARIO
+
+username linkdoti privilege 15 secret hey-listen-3*
+
+!DEFINIR SENHA CONSOLE
+
+line console 0
+login local
+exit
+
+!DEFINIR DOMINIO
+
+ip domain-name watertemple.local
+
+!CONFIGURAR SSH
+
+crypto key generate rsa general-key modulus 1024
+line vty 0 15
+transport input ssh
+login local
+exit
+
+!ADICIONAR IP NA INTERFACE SERIAL s0/0/0
+
+interface serial 0/0/0
+ip address 189.100.0.2 255.255.255.252
+ipv6 address 2001:db8:faca::2/64
+no shutdown
+exit 
+
+!ATIVAR INTERFACE g0/0
+
+interface gigabitethernet 0/0
+no shutdown
+exit
+
+!SUB INTERFACES
+
+interface g0/0.10
+encapsulation dot1q 10
+ip helper-address 172.16.1.50
+ip address 172.16.1.1 255.255.255.224
+ipv6 address 2001:db8:1:10::1/64
+ipv6 address FE80::1 link-local
+no shutdown
+exit 
+interface g0/0.20
+encapsulation dot1q 20
+ip address 172.16.1.33 255.255.255.240
+ipv6 address 2001:db8:1:20::1/64
+ipv6 address FE80::1 link-local
+no shutdown
+exit 
+interface g0/0.30
+encapsulation dot1q 30
+ip address 172.16.1.49 255.255.255.248
+ipv6 address 2001:db8:1:30::1/64
+ipv6 address FE80::1 link-local
+no shutdown
+exit 
+ipv6 unicast-routing
+
+!DEFINIR ROTAS DE ROTEAMENTO
+
+ipv6 route ::/0 2001:db8:faca::1
+ip route 0.0.0.0 0.0.0.0 189.100.0.1
+
+!DEFINIR BLOQUEIO DE USUARIO
+
+login block-for 180 attempts 3 within 60
+
+!DEFINIR TAMANHO DAS SENHAS
+
+security password min-length 8
+
+!ENCRYPTAR AS SENHAS
+
+service password-encryption
+
+!SALVAR 
+
+do copy running-config startup-config
+
+!FIM
+
+end
